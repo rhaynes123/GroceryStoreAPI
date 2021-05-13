@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using GroceryStoreAPI.Data;
 
 namespace GroceryStoreAPI
 {
@@ -28,6 +29,7 @@ namespace GroceryStoreAPI
         {
 
             services.AddControllers();
+            services.AddScoped<IJsonFileHelper, JsonFileHelper>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "GroceryStoreAPI", Version = "v1" });
