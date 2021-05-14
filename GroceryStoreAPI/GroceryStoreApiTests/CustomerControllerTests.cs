@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using GroceryStoreAPI.Controllers;
 using GroceryStoreAPI.Models;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 using Moq;

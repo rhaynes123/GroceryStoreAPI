@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text.Json.Serialization;
+using System.Collections.Generic;
 using System.IO;
 using GroceryStoreAPI.Models;
 using System.Text.Json;
@@ -58,14 +58,28 @@ namespace GroceryStoreAPI.Data
 
         public CustomerList ReadFrom()
         {
-            return File.Exists(_JsonDataFile)
+            try
+            {
+                return File.Exists(_JsonDataFile)
                 ? JsonSerializer.Deserialize<CustomerList>(File.ReadAllText(_JsonDataFile))
                 : new CustomerList();
+            }
+            catch(Exception)
+            {
+                return new CustomerList
+                {
+                    Customers = new List<Customer>
+                    {
+                        Customer.BadCustomer()
+                    }
+                };
+            }
+            
         }
 
         public Customer ReadFromById(int id)
         {
-            return ReadFrom().Customers.FirstOrDefault(r =>r.Id == id) ?? new Customer();
+            return ReadFrom().Customers.FirstOrDefault(r =>r.Id == id) ?? Customer.BadCustomer();
         }
     }
 }

@@ -12,6 +12,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using GroceryStoreAPI.Data;
+using System.IO;
+using System.Reflection;
 
 namespace GroceryStoreAPI
 {
@@ -32,8 +34,17 @@ namespace GroceryStoreAPI
             services.AddScoped<IJsonFileHelper, JsonFileHelper>();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "GroceryStoreAPI", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Richards GroceryStoreAPI",
+                    Version = "v1",
+                    Contact = new OpenApiContact { Name = "Richard Haynes"}
+                });
+                string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

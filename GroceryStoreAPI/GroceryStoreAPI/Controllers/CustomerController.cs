@@ -1,14 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text.Json;
-using System.Threading.Tasks;
 using System.Web;
 using GroceryStoreAPI.Data;
 using GroceryStoreAPI.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -32,7 +27,7 @@ namespace GroceryStoreAPI.Controllers
         }
         // GET: api/Customer
         /// <summary>
-        /// Get
+        /// Get All Customers
         /// </summary>
         /// <returns>Customer List </returns>
         /// <response code="200">Customer Found</response>
@@ -99,12 +94,23 @@ namespace GroceryStoreAPI.Controllers
         /// <summary>
         /// Creates a new Customer
         /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     POST /Customer
+        ///     {
+        ///        "id": 1,
+        ///        "name": "Richard"
+        ///     }
+        ///
+        /// </remarks>
         /// <param name="newCustomer"></param>
         /// <returns>Succesfull if Customer is Created</returns>
         /// <response code="201">Customer Created</response>
         /// <response code="400">Bad data provided</response>
         /// <response code="500">Exception Raised</response>
         [HttpPost]
+        [Consumes("application/json")]
         public ActionResult Post([FromBody] Customer newCustomer)
         {
             try
@@ -141,6 +147,12 @@ namespace GroceryStoreAPI.Controllers
         /// <summary>
         /// Updates an existing customer
         /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     PUT /Customer
+        ///        "Richard"
+        ///     </remarks>
         /// <param name="id"></param>
         /// <param name="Customername"></param>
         /// <returns>Successfully updated object</returns>
