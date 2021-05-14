@@ -17,7 +17,7 @@ namespace GroceryStoreApiTests
         private readonly Mock<IJsonFileHelper> mockJsonFileHelper = new();
         private readonly CustomerController customerController;
         private readonly CustomerList fakecustomers;
-        private readonly int testid = 2;
+        private const int testid = 2;
 
         public CustomerControllerTests()
         {

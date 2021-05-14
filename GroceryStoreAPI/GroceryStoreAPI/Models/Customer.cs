@@ -13,7 +13,7 @@ namespace GroceryStoreAPI.Models
         public string Name { get; set; }
 
         /// <summary>
-        /// Meant To Be Used to indicate bata failure
+        /// Meant To Be Used to indicate data failure
         /// </summary>
         /// <returns>Customer</returns>
         public static Customer BadCustomer()
