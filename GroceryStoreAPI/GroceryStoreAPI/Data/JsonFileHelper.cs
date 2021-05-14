@@ -4,15 +4,18 @@ using System.IO;
 using GroceryStoreAPI.Models;
 using System.Text.Json;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 
 namespace GroceryStoreAPI.Data
 {
     public class JsonFileHelper : IJsonFileHelper
     {
         public readonly string _JsonDataFile;
-        public JsonFileHelper()
+        private readonly IConfiguration _configuration;
+        public JsonFileHelper(IConfiguration configuration)
         {
-            _JsonDataFile = "database.json";
+            _configuration = configuration;
+            _JsonDataFile = _configuration["datasource"];
         }
 
         public void SaveChanges(Customer customer)

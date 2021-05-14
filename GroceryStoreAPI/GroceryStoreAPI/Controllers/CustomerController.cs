@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web;
 using GroceryStoreAPI.Data;
 using GroceryStoreAPI.Models;
 using Microsoft.AspNetCore.Http;
@@ -35,7 +37,7 @@ namespace GroceryStoreAPI.Controllers
         /// <returns>Customer List </returns>
         /// <response code="200">Customer Found</response>
         /// <response code="404">Customer Not Found</response>
-        /// <response code="400">Exception Raised</response>
+        /// <response code="500">Exception Raised</response>
         [HttpGet]
         public ActionResult Get()
         {
@@ -45,7 +47,7 @@ namespace GroceryStoreAPI.Controllers
                 if (CustomersList == null)
                 {
                     _logger.LogCritical(DatabaseNullError);
-                    return StatusCode(400, new { error = DatabaseNullError });
+                    return StatusCode((int)HttpStatusCode.InternalServerError, new { error = DatabaseNullError });
                 }
                 if (CustomersList.Customers.Count == 0)
                 {
@@ -53,14 +55,14 @@ namespace GroceryStoreAPI.Controllers
                 }
                 else
                 {
-                    return Ok(CustomersList);
+                    return Ok(CustomersList.Customers.OrderByDescending(r=>r.Id));
                 }
                 
             }
             catch(Exception ex)
             {
                 _logger.LogError($"Exception raised in Get. Exception:{ex.Message}");
-                return StatusCode(400, new { error = "An error was encountered looking for customers" });
+                return StatusCode((int)HttpStatusCode.InternalServerError, new { error = "An error was encountered looking for customers" });
             }
             
         }
@@ -73,7 +75,7 @@ namespace GroceryStoreAPI.Controllers
         /// <returns>Found Customer</returns>
         /// <response code="200">Customer Found</response>
         /// <response code="404">Customer Not Found</response>
-        /// <response code="400">Exception Raised</response>
+        /// <response code="500">Exception Raised</response>
         [HttpGet("{id}", Name = "Get")]
         public ActionResult Get(int id)
         {
@@ -89,7 +91,7 @@ namespace GroceryStoreAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Exception raised in Get Id: {id}, Exception:{ex.Message}");
-                return StatusCode(400, new { error = $"An error was encountered looking for customer id: {id}" });
+                return StatusCode((int)HttpStatusCode.InternalServerError, new { error = $"An error was encountered looking for customer id: {id}" });
             }
         }
 
@@ -100,7 +102,8 @@ namespace GroceryStoreAPI.Controllers
         /// <param name="newCustomer"></param>
         /// <returns>Succesfull if Customer is Created</returns>
         /// <response code="201">Customer Created</response>
-        /// <response code="400">Exception Raised or Bad data provided</response>
+        /// <response code="400">Bad data provided</response>
+        /// <response code="500">Exception Raised</response>
         [HttpPost]
         public ActionResult Post([FromBody] Customer newCustomer)
         {
@@ -109,13 +112,13 @@ namespace GroceryStoreAPI.Controllers
                 CustomersList = _jsonFileHelper.ReadFrom();
                 if (CustomersList == null)
                 {
-                    return StatusCode(400, new { error = DatabaseNullError });
+                    return StatusCode((int)HttpStatusCode.InternalServerError, new { error = DatabaseNullError });
                 }
                 if (string.IsNullOrWhiteSpace(newCustomer.Name))
                 {
                     return BadRequest($"That Name cannot be empty: {newCustomer.Id}");
                 }
-                if (CustomersList.Customers.Any(r => r.Id == newCustomer.Id) || newCustomer.Id <=0)
+                if (CustomersList.Customers.Exists(r => r.Id == newCustomer.Id) || newCustomer.Id <=0)
                 {
                     return BadRequest($"That Id cannot be used id: {newCustomer.Id}");
                 }
@@ -126,7 +129,7 @@ namespace GroceryStoreAPI.Controllers
             }
             catch(Exception)
             {
-                return StatusCode(400, new { error = $"New Customer {newCustomer.Id}, {newCustomer.Name} couldn't be saved"});
+                return StatusCode((int)HttpStatusCode.InternalServerError, new { error = $"New Customer {newCustomer.Id}, {newCustomer.Name} couldn't be saved"});
             }
             
         }
@@ -138,9 +141,10 @@ namespace GroceryStoreAPI.Controllers
         /// <param name="id"></param>
         /// <param name="Customername"></param>
         /// <returns>Successfully updated object</returns>
-        /// <response code="200">Customer Found</response>
+        /// <response code="200">Customer Found And Updated</response>
         /// <response code="404">Customer Not Found</response>
-        /// <response code="400">Exception Raised or Bad data provided</response>
+        /// <response code="400">Bad data provided</response>
+        /// <response code="500">Exception Raised</response>
         [HttpPut("{id}")]
         public ActionResult Put(int id, [FromBody] string Customername)
         {
@@ -150,18 +154,18 @@ namespace GroceryStoreAPI.Controllers
                 Customer existingCostumer = new()
                 {
                     Id = id,
-                    Name = Customername
+                    Name = HttpUtility.HtmlEncode(Customername)//Sanitizing the name string
                 };
                 CustomersList = _jsonFileHelper.ReadFrom();
                 if (CustomersList == null)
                 {
-                    return StatusCode(400, new { error = DatabaseNullError });
+                    return StatusCode(500, new { error = DatabaseNullError });
                 }
-                if (string.IsNullOrWhiteSpace(Customername))
+                if (string.IsNullOrWhiteSpace(existingCostumer.Name))
                 {
                     return BadRequest("That Name cannot be empty");
                 }
-                if (!CustomersList.Customers.Any(r => r.Id == id))
+                if (!CustomersList.Customers.Exists(r => r.Id == id))
                 {
                     return NotFound($"A customer with this Id wasn't found id: {existingCostumer.Id}");
                 }
@@ -173,7 +177,7 @@ namespace GroceryStoreAPI.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(400, new { error = $"New Customer {id}, {Customername} couldn't be saved" });
+                return StatusCode(500, new { error = $"New Customer {id}, {Customername} couldn't be saved" });
             }
         }
 

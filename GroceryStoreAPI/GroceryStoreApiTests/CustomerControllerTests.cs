@@ -57,7 +57,7 @@ namespace GroceryStoreApiTests
         }
 
         [Fact]
-        public void GetCustomersReturnsTypeOfBadRequest()
+        public void GetCustomersReturnsTypeOf500()
         {
             //Arrange
             var customerController = new CustomerController(customerControllerlogger.Object , jsonFileHelper: mockJsonFileHelper.Object)
@@ -66,9 +66,10 @@ namespace GroceryStoreApiTests
                 CustomersList = null //Attempting to mimic data corruption 
             };
             //Act
-            var result = customerController.Get();
+            ObjectResult result = (ObjectResult)customerController.Get();
             //Assert
             Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, result.StatusCode);
         }
 
         [Fact]
@@ -105,7 +106,7 @@ namespace GroceryStoreApiTests
         }
 
         [Fact]
-        public void GetCustomersByIDReturnsTypeOfBadRequest()
+        public void GetCustomersByIDReturnsTypeOf500()
         {
             //Arrange
             var customerController = new CustomerController(customerControllerlogger.Object, jsonFileHelper: mockJsonFileHelper.Object)
@@ -115,10 +116,10 @@ namespace GroceryStoreApiTests
             };
             mockJsonFileHelper.Setup(r => r.ReadFromById(testid)).Throws<Exception>();
             //Act
-            //Act
-            var result = customerController.Get();
+            ObjectResult result = (ObjectResult)customerController.Get(testid);
             //Assert
             Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, result.StatusCode);
         }
 
         [Fact]
@@ -167,11 +168,60 @@ namespace GroceryStoreApiTests
             //Assert
             Assert.IsType<BadRequestObjectResult>(result);
         }
+        [Fact]
+        public void PostCustomerReturnsTypeOfBadRequestWhenIdIsZero()
+        {
+            //Arrange
+            Customer newcustomer = new()
+            {
+                Id = 0,
+                Name = "Dawn"
+            };
+            mockJsonFileHelper.Setup(r => r.ReadFrom()).Returns(fakecustomers);
+            mockJsonFileHelper.Setup(r => r.SaveChanges(newcustomer));
+            //Act
+            var result = customerController.Post(newcustomer);
+            //Assert
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+        [Fact]
+        public void PostCustomerReturnsTypeOfBadRequestWhenNameIsEmpty()
+        {
+            //Arrange
+            Customer newcustomer = new()
+            {
+                Id = 3,
+                Name = ""
+            };
+            mockJsonFileHelper.Setup(r => r.ReadFrom()).Returns(fakecustomers);
+            mockJsonFileHelper.Setup(r => r.SaveChanges(newcustomer));
+            //Act
+            var result = customerController.Post(newcustomer);
+            //Assert
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+        [Fact]
+        public void PostCustomerReturnsTypeOfBadRequestWhenExceptionIsRaised()
+        {
+            //Arrange
+            Customer newcustomer = new()
+            {
+                Id = 3,
+                Name = "3"
+            };
+            mockJsonFileHelper.Setup(r => r.ReadFrom()).Returns(fakecustomers);
+            mockJsonFileHelper.Setup(r => r.SaveChanges(newcustomer)).Throws<Exception>();
+            //Act
+            ObjectResult result = (ObjectResult)customerController.Post(newcustomer);
+            //Assert
+            Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, result.StatusCode);
+        }
         #endregion Post Tests
 
         #region Put Tests
         [Fact]
-        public void PutCustomerReturnsTyoeOfOkObject()
+        public void PutCustomerReturnsTypeOfOkObject()
         {
             //Arrange
             mockJsonFileHelper.Setup(r => r.ReadFrom()).Returns(fakecustomers);
@@ -193,7 +243,7 @@ namespace GroceryStoreApiTests
             Assert.IsType<BadRequestObjectResult>(result);
         }
         [Fact]
-        public void PutReturnsTypeOfNotFoundObjectWhneIdIsNegative()
+        public void PutReturnsTypeOfNotFoundObjectWhenIdIsNegative()
         {
             //Arrange
             mockJsonFileHelper.Setup(r => r.ReadFrom()).Returns(fakecustomers);
@@ -202,6 +252,32 @@ namespace GroceryStoreApiTests
             var result = customerController.Put(-3, "Tom");
             //Assert
             Assert.IsType<NotFoundObjectResult>(result);
+        }
+        [Fact]
+        public void PutCustomerReturnsTypeOfServerErrorWhenExceptionIsRaised()
+        {
+            //Arrange
+            
+            mockJsonFileHelper.Setup(r => r.ReadFrom()).Throws<Exception>();
+            mockJsonFileHelper.Setup(r => r.SaveChanges(fakecustomers.Customers[1])).Throws<Exception>();
+            //Act
+            ObjectResult result = (ObjectResult)customerController.Put(2, "Tom");
+            //Assert
+            Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, result.StatusCode);
+        }
+        [Fact]
+        public void PutCustomerReturnsTypeOfServerErrorWhenExceptionIsRaisedWhenListIsNull()
+        {
+            //Arrange
+            CustomerList emptycustomers = null;
+            mockJsonFileHelper.Setup(r => r.ReadFrom()).Returns(emptycustomers);
+            mockJsonFileHelper.Setup(r => r.SaveChanges(It.IsAny<Customer>())).Throws<Exception>();
+            //Act
+            ObjectResult result = (ObjectResult)customerController.Put(2, "Tom");
+            //Assert
+            Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, result.StatusCode);
         }
         #endregion Put Tests
     }

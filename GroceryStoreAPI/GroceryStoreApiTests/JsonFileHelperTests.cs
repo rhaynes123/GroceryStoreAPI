@@ -6,17 +6,22 @@ using GroceryStoreAPI.Data;
 using Moq;
 using Xunit;
 using System.Collections.Generic;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace GroceryStoreApiTests
 {
     public class JsonFileHelperTests
     {
-        private readonly JsonFileHelper jsonFileHelper = new();
+        private readonly JsonFileHelper jsonFileHelper;
         private readonly Mock<IJsonFileHelper> mockJsonfileHelper;
+        private readonly Mock<IConfiguration> mockConfig = new();
         private readonly Customer fakecustomer;
+        private const string dbFile = "database.json";
         public JsonFileHelperTests()
         {
             mockJsonfileHelper = new Mock<IJsonFileHelper>();
+            jsonFileHelper = new(mockConfig.Object);
             fakecustomer = new Customer
             {
                 Id = 5,
@@ -29,7 +34,17 @@ namespace GroceryStoreApiTests
             //Arrange
             //Act
             //Assert
-            Assert.True(File.Exists(jsonFileHelper._JsonDataFile));
+            Assert.True(File.Exists(dbFile));
+        }
+        [Fact]
+        public void TestRealFileHasData()
+        {
+            //Arrange
+            var customerList = JsonSerializer.Deserialize<CustomerList>(File.ReadAllText(dbFile));
+            //Act
+            //Assert
+            Assert.NotNull(customerList);
+            Assert.NotEmpty(customerList.Customers);
         }
         [Fact]
         public void TestReadFromRetunsTypeOfCustomerList()
