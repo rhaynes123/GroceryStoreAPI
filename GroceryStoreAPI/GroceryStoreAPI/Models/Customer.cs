@@ -9,7 +9,7 @@ namespace GroceryStoreAPI.Models
         [Required,JsonPropertyName("id")]
         public int Id { get; set; }
        
-        [Required, RegularExpression("[a-zA-Z]", ErrorMessage = "Invalid Characters"), MaxLength(50),JsonPropertyName("name")]
+        [Required, RegularExpression(@"^[a-zA-Z]+$", ErrorMessage = "Invalid Characters"), MaxLength(50),JsonPropertyName("name")]
         public string Name { get; set; }
     }
 }

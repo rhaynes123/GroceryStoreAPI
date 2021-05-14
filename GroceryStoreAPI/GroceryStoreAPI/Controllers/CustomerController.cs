@@ -55,7 +55,7 @@ namespace GroceryStoreAPI.Controllers
                 }
                 else
                 {
-                    return Ok(CustomersList.Customers.OrderByDescending(r=>r.Id));
+                    return Ok(CustomersList.Customers.OrderBy(r=>r.Id));
                 }
                 
             }
@@ -116,10 +116,12 @@ namespace GroceryStoreAPI.Controllers
                 }
                 if (string.IsNullOrWhiteSpace(newCustomer.Name))
                 {
+                    _logger.LogWarning($"Pos: Empty Name was attempted for {newCustomer}");
                     return BadRequest($"That Name cannot be empty: {newCustomer.Id}");
                 }
                 if (CustomersList.Customers.Exists(r => r.Id == newCustomer.Id) || newCustomer.Id <=0)
                 {
+                    _logger.LogWarning($"Post:Attempted for prexisting/bad Id: {newCustomer.Id} for {newCustomer}");
                     return BadRequest($"That Id cannot be used id: {newCustomer.Id}");
                 }
                
@@ -127,8 +129,9 @@ namespace GroceryStoreAPI.Controllers
 
                 return CreatedAtAction(nameof(Get), new { id = newCustomer.Id }, newCustomer);
             }
-            catch(Exception)
+            catch(Exception ex)
             {
+                _logger.LogCritical($"Post For :{newCustomer},{ex.Message}");
                 return StatusCode((int)HttpStatusCode.InternalServerError, new { error = $"New Customer {newCustomer.Id}, {newCustomer.Name} couldn't be saved"});
             }
             
@@ -159,14 +162,17 @@ namespace GroceryStoreAPI.Controllers
                 CustomersList = _jsonFileHelper.ReadFrom();
                 if (CustomersList == null)
                 {
+                    _logger.LogCritical($"Put: Raised:{DatabaseNullError}");
                     return StatusCode(500, new { error = DatabaseNullError });
                 }
                 if (string.IsNullOrWhiteSpace(existingCostumer.Name))
                 {
+                    _logger.LogWarning($"Put: Empty Name was attempted for {existingCostumer}");
                     return BadRequest("That Name cannot be empty");
                 }
                 if (!CustomersList.Customers.Exists(r => r.Id == id))
                 {
+                    _logger.LogWarning($"Put:Attempted for prexisting/bad Id: {id} for {Customername}");
                     return NotFound($"A customer with this Id wasn't found id: {existingCostumer.Id}");
                 }
                 else
@@ -175,8 +181,9 @@ namespace GroceryStoreAPI.Controllers
                     return Ok(existingCostumer);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogCritical($"Put For : {id},{Customername},{ex}");
                 return StatusCode(500, new { error = $"New Customer {id}, {Customername} couldn't be saved" });
             }
         }

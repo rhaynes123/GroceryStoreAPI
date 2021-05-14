@@ -49,9 +49,9 @@ namespace GroceryStoreAPI.Data
                 }
                 File.WriteAllText(_JsonDataFile, JsonSerializer.Serialize(customerList));
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-                throw new InvalidOperationException($"Could not Save {customer} to {_JsonDataFile}");
+                throw new InvalidOperationException($"Could not Save {customer} to {_JsonDataFile}: View Full Exception data: {ex}");
             }
             
         }
